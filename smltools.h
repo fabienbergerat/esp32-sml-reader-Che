@@ -47,12 +47,12 @@ char* contains_valid_sml(char* smldata)
 {
   char* p1 = strstr( (char *) smldata, (char *) START );
   char* p2 = strstr( (char *) smldata, (char *) STOP  );
-  if ( (p1 != NULL) & (p2 != NULL) & (p2>p1)) {
+  if ( (p1 != 0) & (p2 != 0) & (p2>p1)) {
     char* p3 = p2 + strlen(STOP);
     *p3 = '\0';
     return p1;
   }
-  return NULL;
+  return 0;
 }
 
 /*================================
@@ -82,7 +82,7 @@ long long ValFromSmlHex(char* smlhex, char* key, int offset, int numchars)
     int    keylen;
 
     //-- validate input
-    if ( key == NULL )                   { Serial.println("*key is NULL\n");               return -1.0;}
+    if ( key == 0 )                   { Serial.println("*key is NULL\n");               return -1.0;}
     keylen = strlen(key);
     if ( keylen == 0 )                   { Serial.println("key is empty string\n");        return -1.0;}
     if ( numchars >= BUF32CHRSIZ-3 )     { Serial.println("numchars is too big\n");        return -1.0;}
@@ -91,7 +91,7 @@ long long ValFromSmlHex(char* smlhex, char* key, int offset, int numchars)
     //-- find sml key text
     keypos = strstr( smlhex, key );
 
-    if (keypos != NULL) {
+    if (keypos != 0) {
       //-- copy to buffer & add zero byte for end of string 
       buf32chr[0] = '0';
       buf32chr[1] = 'x';
@@ -102,7 +102,7 @@ long long ValFromSmlHex(char* smlhex, char* key, int offset, int numchars)
       return twos_complement(buf32chr,32) ;
     } else {
       Serial.print("key not found: "); Serial.println(key);
-      return NULL;
+      return 0;
     }
 }
 
@@ -120,11 +120,11 @@ void resetReadBuffer(void) {
  * one full sml message
  */
 void readIntoBuffer(void){
-  int num_bytes_avail = SerialX.available();
+  int num_bytes_avail = Serial2.available();
   if (num_bytes_avail*2 > bufsz) {
     Serial.println("number of bytes on Serial2 to big to save:" + String(num_bytes_avail) );
-    while (SerialX.available()) {
-      hx = byte2hex(SerialX.read()); // read and discard
+    while (Serial2.available()) {
+      hx = byte2hex(Serial2.read()); // read and discard
     }
   } else {
     // if not enough space, then move some bytes
@@ -134,7 +134,7 @@ void readIntoBuffer(void){
     } else {
       // read and save as hex chars
       for(int i=0; i<num_bytes_avail; i++){
-        String hx = byte2hex(SerialX.read());
+        String hx = byte2hex(Serial2.read());
         myBuffer[bufix+0] = hx[0];
         myBuffer[bufix+1] = hx[1];
         bufix +=2;
@@ -149,10 +149,13 @@ void readIntoBuffer(void){
 /*==============================
  * extract data from sml string
  */
-signed  long long extractDataFrom( char* hexstring, int key){
+/* signed long long extractDataFrom( char* hexstring, int key){
   signed long long raw = ValFromSmlHex( hexstring, (char *) smlkeys[key].hextxt, smlkeys[key].offset, smlkeys[key].length );
-  signed long  val = div( raw, 10 ).quot;
-  if ( val == NULL ) {
+  signed long  val = div( raw, 10 ).quot; */
+char extractDataFrom( char* hexstring, int key){
+  long raw = ValFromSmlHex( hexstring, (char *) smlkeys[key].hextxt, smlkeys[key].offset, smlkeys[key].length );
+  long val = raw;
+  if ( val == 0 ) {
     Serial.println("Error getting value from hex string\n");
   }
   return val;

@@ -1,15 +1,15 @@
-/* 
- * ==  esp32-sml-reader-Che v0.8 ==
- * - (c)2019 Bernd Künnen; code under MIT license ==
- * - use an ESP32 to read smartmeter data from IR interface
- * - reads data via hardware serial
- * - uses IR photo transistor based sensor as input 
- * - may write data to different backends (currently: influxdb, volkszaehler, plain http server log)
- * - uses deep sleep to save power
- * + define passwords etc. in config.h
- * + early version; use at own risk
- * + improvement welcome
- */
+/*
+   ==  esp32-sml-reader-Che v0.8 ==
+   - (c)2019 Bernd Künnen; code under MIT license ==
+   - use an ESP32 to read smartmeter data from IR interface
+   - reads data via hardware serial
+   - uses IR photo transistor based sensor as input
+   - may write data to different backends (currently: influxdb, volkszaehler, plain http server log)
+   - uses deep sleep to save power
+   + define passwords etc. in config.h
+   + early version; use at own risk
+   + improvement welcome
+*/
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -20,7 +20,7 @@
 #include "config.h"
 
 //== global objects section ==
-HardwareSerial   SerialX(2);
+// HardwareSerial   SerialX(2);
 Influxdb         influx(INFLUXDB_HOST, INFLUXDB_PORT);
 
 RTC_DATA_ATTR int bootCount = 0;
@@ -40,11 +40,18 @@ String  hx = "";
 
 
 void setup() {
-  
+
   /**** serial part ****/
   Serial.begin(BAUD1);
-  SerialX.begin(BAUD2); // default is 8N1, SERIAL_8N1, RX=GPIO13, TX=GPIO15
-  Serial.println("Serials initialized.");  
+  Serial2.begin(BAUD2); // default is 8N1, SERIAL_8N1, RX=GPIO13, TX=GPIO15
+  
+  delay(5000);
+  Serial.println("------------------------------");
+  Serial.println("Serials initialized.");
+  //Serial2.write("/?!<CR><LF>");
+  Serial2.write("/?!");
+  delay(500);
+  //Serial2.write("<ACK>050<CR><LF>");
 
   /**** wifi part ****/
   Serial.println("Connecting to wifi ... ");
@@ -68,40 +75,54 @@ void setup() {
   //-- Increment boot number and print it every reboot
   ++bootCount;
   Serial.println("Boot number: " + String(bootCount));
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  Serial.println("Setup ESP32 to sleep for " + String(TIME_TO_SLEEP) + " Seconds");
+  // esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+  // Serial.println("Setup ESP32 to sleep for " + String(TIME_TO_SLEEP) + " Seconds");
 
   // set GPIOx as (power) output, means switch on sensor
   pinMode(SENSORPOWERPIN,  OUTPUT);
+  Serial.println("Pinmode set");
   digitalWrite(SENSORPOWERPIN, HIGH);
+  Serial.println("Digitalwrite set");
 
   // clear buffer
   resetReadBuffer();
-}
- 
-void loop() {
-   
-  if (SerialX.available()) {
+  Serial.println("Read buffer reset");
+  if (Serial2.available()) {
+    Serial.println("Serial 2 is avsailable");
+  }
 
+  
+}
+
+void loop() {
+  
+  if (Serial2.available()) {
     readIntoBuffer();
     smldata = contains_valid_sml(myBuffer);
-    if (smldata){
+    if (smldata) {
       Serial.println("found sml data");
       Serial.println( smldata );
-      for (int k=0; k<numOfValues; k++) {
+      for (int k = 0; k < numOfValues; k++) {
         smartvalues[k] = extractDataFrom( smldata, k) ;
         Serial.println( (long) smartvalues[k] );
       }
-      if (WRITE2INFLUX) { write2influx(); }
-      if (WRITE2VZ)     { write2vz();     }
-      if (WRITE2NGINX)  { write2nginx();  }
-      Serial.println("going to deep sleep ...");
-      Serial.flush();
-      esp_deep_sleep_start();
+      if (WRITE2INFLUX) {
+        write2influx();
+      }
+      if (WRITE2VZ)     {
+        write2vz();
+      }
+      if (WRITE2NGINX)  {
+        write2nginx();
+      }
+      // Serial.println("going to deep sleep ...");
+      // Serial.flush();
+      // esp_deep_sleep_start();
     }
     else
     {
       // Serial.println("no sml found in " + String(myBuffer) );
+      Serial.println("no sml found..." );
     }
   }
 }

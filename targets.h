@@ -9,7 +9,7 @@ void write2influx(void){
         for (int obis; obis < numOfValues; ++obis){
           String key = smlkeys[obis].name;
           signed long long  val = smartvalues[obis];
-          if ( val != NULL ) {
+          if ( val != 0 ) {
             measurement.addValue( key, val );
             numvals++;
           }
@@ -45,7 +45,7 @@ void write2vz(void){
       if (obis2do == key ){
         String uuid = my_vz_uuids[i].uuid;
         signed long  val = smartvalues[obis];
-        if ( val != NULL ) {
+        if ( val != 0 ) {
           //-- prepare url to call, like http://localhost/data/(uudid).json?value=1234.56
           String url = vz_base_url;
           url += uuid;

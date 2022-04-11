@@ -1,21 +1,21 @@
 
 //-- general section -----------------------------
 #define numOfValues      3       // I'm reading 1.8.0, 2.8.0 and 16.7.0 
-#define SENSORPOWERPIN   4       // number of GPIO port for powering sensor
+#define SENSORPOWERPIN   2       // number of GPIO port for powering sensor
 
 #define TIME_TO_SLEEP       57   // Time ESP32 will go to sleep (in seconds)
 #define uS_TO_S_FACTOR 1000000   // Conversion factor for micro seconds to seconds 
 
 //-- wifi section --------------------------------
-const char* wifi_ssid = "NameOfYourWifi";
-const char* wifi_pass = "**************";
+const char* wifi_ssid = "Velop 2.4";
+const char* wifi_pass = "amadeus1791";
 
 //-- serial section ------------------------------
 #define BAUD1 115200  // for USB debugging
-#define BAUD2 9600    // for the smartmeter line
+#define BAUD2 300    // for the smartmeter line
 
 //-- influxdb section -------------------------
-#define WRITE2INFLUX true
+#define WRITE2INFLUX false
 #define INFLUXDB_HOST      "my.influx.com"   // hostname or ip address
 #define INFLUXDB_PORT      8086              // port number
 #define INFLUXDB_DATABASE  "somedb"          // database
@@ -27,7 +27,7 @@ const char* wifi_pass = "**************";
 // step 1/2: define vz base url
 // step 2/2: configure uuids from vz 
 
-#define WRITE2VZ     true
+#define WRITE2VZ     false
 #define vz_base_url "http://vz.server.tld/middleware.php/data/";
 
 // don't touch struct; write uuids to array below
@@ -41,6 +41,5 @@ const VZ_UUID my_vz_uuids[numOfValues] = {
 };
 
 //-- nginx debug section -----------------------------
-#define WRITE2NGINX    true
+#define WRITE2NGINX    false
 #define nginx_base_url "http://www.myserver.tld/smlvals/"
-
